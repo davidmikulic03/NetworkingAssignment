@@ -53,6 +53,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Send"",
+                    ""type"": ""Button"",
+                    ""id"": ""3f31fec3-019a-42d6-91f8-6a2a68d5ce34"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -132,6 +141,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""Charge"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""408bad84-2b41-4582-95b5-2156330ed7f6"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Send"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -143,6 +163,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Default_Movement = m_Default.FindAction("Movement", throwIfNotFound: true);
         m_Default_Look = m_Default.FindAction("Look", throwIfNotFound: true);
         m_Default_Charge = m_Default.FindAction("Charge", throwIfNotFound: true);
+        m_Default_Send = m_Default.FindAction("Send", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -207,6 +228,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Default_Movement;
     private readonly InputAction m_Default_Look;
     private readonly InputAction m_Default_Charge;
+    private readonly InputAction m_Default_Send;
     public struct DefaultActions
     {
         private @PlayerInput m_Wrapper;
@@ -214,6 +236,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         public InputAction @Movement => m_Wrapper.m_Default_Movement;
         public InputAction @Look => m_Wrapper.m_Default_Look;
         public InputAction @Charge => m_Wrapper.m_Default_Charge;
+        public InputAction @Send => m_Wrapper.m_Default_Send;
         public InputActionMap Get() { return m_Wrapper.m_Default; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -232,6 +255,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Charge.started += instance.OnCharge;
             @Charge.performed += instance.OnCharge;
             @Charge.canceled += instance.OnCharge;
+            @Send.started += instance.OnSend;
+            @Send.performed += instance.OnSend;
+            @Send.canceled += instance.OnSend;
         }
 
         private void UnregisterCallbacks(IDefaultActions instance)
@@ -245,6 +271,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Charge.started -= instance.OnCharge;
             @Charge.performed -= instance.OnCharge;
             @Charge.canceled -= instance.OnCharge;
+            @Send.started -= instance.OnSend;
+            @Send.performed -= instance.OnSend;
+            @Send.canceled -= instance.OnSend;
         }
 
         public void RemoveCallbacks(IDefaultActions instance)
@@ -267,5 +296,6 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         void OnMovement(InputAction.CallbackContext context);
         void OnLook(InputAction.CallbackContext context);
         void OnCharge(InputAction.CallbackContext context);
+        void OnSend(InputAction.CallbackContext context);
     }
 }

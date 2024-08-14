@@ -7,6 +7,11 @@ using UnityEngine.InputSystem;
 
 public class Player : NetworkBehaviour {
 
+    [Header("Player")]
+    [SerializeField] SpriteRenderer SpriteRendererComponent;
+    [SerializeField] Color HealthyColor = Color.white;
+    [SerializeField] Color DeadColor = Color.red;
+
     [Header("Moving")]
     [SerializeField, Range(0f, 10f)] private float MaxSpeed = 5f;
     [SerializeField, Range(0f, 1f)] private float AccelerationTime = 0.1f;
@@ -20,6 +25,8 @@ public class Player : NetworkBehaviour {
     [SerializeField] private Color MediumChargeColor = Color.yellow;
     [SerializeField] private Color FullChargeColor = Color.green;
     [Header("Getting Hit")]
+    [SerializeField, Range(0, 1000)] private int MaxHealth = 100; 
+    [SerializeField, Range(0, 1000)] private int MaxDamageTaken = 25; 
     [SerializeField, Range(0f, 100f)] private float MaxImpactImpulse = 50f;
 
     public Transform MuzzleTransform;
@@ -39,8 +46,11 @@ public class Player : NetworkBehaviour {
     private bool IsCharging = false;
     private float ChargeLevel = 0f;
 
+    private float Speed;
+
     private GameManager GameManager;
 
+    private NetworkVariable<int> Health = new NetworkVariable<int>();
 
     public ulong UniqueNetId { get; private set; }
 
@@ -50,7 +60,7 @@ public class Player : NetworkBehaviour {
 
         ChargePoints[0] = ChargeIndicator.transform.GetChild(0);
         ChargePoints[1] = ChargeIndicator.transform.GetChild(1);
-        
+        Speed = MaxSpeed;
     }
 
     void Update() {
@@ -104,6 +114,11 @@ public class Player : NetworkBehaviour {
         }
         GameManager = NetworkManager.gameObject.GetComponent<GameManager>();
         UniqueNetId = NetworkManager.LocalClientId;
+        Health.Value = MaxHealth;
+        Health.OnValueChanged += UpdateColorRpc;
+    }
+    public override void OnNetworkDespawn() {
+        Health.OnValueChanged -= UpdateColorRpc;
     }
     private void OnGUI() {
         GUILayout.BeginArea(new Rect(20, 450, 200, 200));
@@ -111,15 +126,14 @@ public class Player : NetworkBehaviour {
         GUILayout.EndArea();
     }
 
-
     private void Look(Vector3 LookVector) {
 
         Vector3 targetDirection = (LookVector - transform.position).normalized;
         transform.up = targetDirection;
     }
     private void Move(Vector2 MovementInput) {
-        float adv = MaxSpeed * Time.fixedDeltaTime / AccelerationTime;
-        float ddv = MaxSpeed * Time.fixedDeltaTime / DecelerationTime;
+        float adv = Speed * Time.fixedDeltaTime / AccelerationTime;
+        float ddv = Speed * Time.fixedDeltaTime / DecelerationTime;
 
         RigidBodyComponent.velocity += MovementInput * adv;
         float mag = RigidBodyComponent.velocity.magnitude;
@@ -138,16 +152,17 @@ public class Player : NetworkBehaviour {
         
         RigidBodyComponent.velocity -= deceleration;
 
-        if (mag > MaxSpeed)
-            RigidBodyComponent.velocity = RigidBodyComponent.velocity / mag * MaxSpeed;
+        if (mag > Speed)
+            RigidBodyComponent.velocity = RigidBodyComponent.velocity / mag * Speed;
     }
     private void Fire(float ChargeLevel) {
         Transform spawnedBulledTransform = Instantiate(BulletPrefab);
         var bullet = spawnedBulledTransform.GetComponent<Bullet>();
-        if(bullet)
-            bullet.Initialize(this, transform.up.xy(), ChargeLevel);
+        float power = (ChargeThreshold - ChargeLevel) / (ChargeThreshold - 1f);
+        if (bullet)
+            bullet.Initialize(this, transform.up.xy(), power);
         spawnedBulledTransform.GetComponent<NetworkObject>().Spawn(true);
-        RigidBodyComponent.velocity -= transform.up.xy() * FireImpulse * ChargeLevel * ChargeLevel;
+        RigidBodyComponent.velocity -= transform.up.xy() * FireImpulse * power;
     }
 
     [ServerRpc] private void RequestMoveServerRpc(Vector2 Input) {
@@ -159,9 +174,42 @@ public class Player : NetworkBehaviour {
     [ServerRpc] private void RequestFireServerRpc(float ChargeLevel) {
         Fire(ChargeLevel);
     }
-    public void BulletImpact(Vector2 Direction, float Power) {
+    public void Damage(Vector2 Direction, float Power) {
         Vector2 impulse = (Direction * Power * Power * MaxImpactImpulse);
         RigidBodyComponent.velocity += impulse;
+        Health.Value -= (int)(Power * Power * MaxDamageTaken);
+        Speed = MaxSpeed * Mathf.Sqrt((float)Health.Value / MaxHealth);
+        if (Health.Value < 0) {
+            Die();
+        }
+    }
+    public void Die() {
+        Debug.Log("Client sent death request.");
+        if(IsOwner)
+            HandleEndStateServerRpc(NetworkManager.LocalClientId);
+    }
+    [ServerRpc(RequireOwnership = false)] private void HandleEndStateServerRpc(ulong LoserId) {
+        Debug.Log("Server received death request from client.");
+        HandleEndStateClientRpc(LoserId);
+    }
+    [ClientRpc] private void HandleEndStateClientRpc(ulong LoserId) {
+        Debug.Log("Client received death request from server.");
+        var winScreen = NetworkManager.gameObject.GetComponent<GameManager>().WinScreen;
+        if (!winScreen) {
+            Debug.LogError("Could not find win screen.");
+            return;
+        }
+        if (NetworkManager.LocalClientId != LoserId) {
+            winScreen.Win();
+        } else {
+            winScreen.Lose();
+            Destroy(gameObject);
+        }
+    }
+
+    [Rpc(SendTo.Everyone)] private void UpdateColorRpc(int previous, int current) {
+        float t = (float)Health.Value / MaxHealth;
+        SpriteRendererComponent.color = Color.Lerp(DeadColor, HealthyColor, t * t);
     }
 
     private Vector3 ReadLookInput() {

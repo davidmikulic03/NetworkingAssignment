@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem.Processors;
 
 public class Bullet : NetworkBehaviour {
+    [SerializeField, Range(0f, 50f)] private float MinSpeed = 2f;
     [SerializeField, Range(0f, 50f)] private float MaxSpeed = 10f;
     [SerializeField, Range(0f, 15f)] private float MaxLifeTime = 5f;
     [SerializeField] private GameObject Sprite;
@@ -31,12 +32,12 @@ public class Bullet : NetworkBehaviour {
         this.Instigator = Instigator;
         this.Power = Power;
 
-        float speed = Power * Power * MaxSpeed;
+        float speed = Mathf.Lerp(MinSpeed, MaxSpeed, Power);
         speed = Mathf.Clamp(speed, 0f, MaxSpeed);
         Velocity = Direction * speed;
         transform.up = Direction;
         transform.position = Instigator.MuzzleTransform.position;
-        Debug.Log(Instigator.MuzzleTransform.position);
+        Debug.Log(Power);
     }
 
     private void OnTriggerEnter2D(Collider2D collider) {
@@ -45,7 +46,7 @@ public class Bullet : NetworkBehaviour {
         Debug.Log("Hit!");
         var player = collider.gameObject.GetComponent<Player>();
         if (player) {
-            player.BulletImpact(transform.up.xy0(), Power);
+            player.Damage(transform.up.xy0(), Power);
         }
         DestroyServerRpc();
     }
