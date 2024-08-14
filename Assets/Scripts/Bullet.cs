@@ -36,6 +36,7 @@ public class Bullet : NetworkBehaviour {
         Velocity = Direction * speed;
         transform.up = Direction;
         transform.position = Instigator.MuzzleTransform.position;
+        Debug.Log(Instigator.MuzzleTransform.position);
     }
 
     private void OnTriggerEnter2D(Collider2D collider) {
@@ -58,7 +59,6 @@ public class Bullet : NetworkBehaviour {
         //    Collider.enabled = false;
         //    Sprite.SetActive(false);
         //}
-        Instigator.ScorePoint();
         Destroy(gameObject);
     }
 }

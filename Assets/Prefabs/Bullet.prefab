@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 697417155
+  GlobalObjectIdHash: 3947034189
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -137,9 +137,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d3643be4c2696d4ea694e11119c6719, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxSpeed: 20
+  MaxSpeed: 15
   MaxLifeTime: 5
-  Mass: 5
   Sprite: {fileID: 3714343759624032378}
 --- !u!198 &4637637000205132921
 ParticleSystem:

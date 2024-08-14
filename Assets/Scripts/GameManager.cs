@@ -8,23 +8,12 @@ using UnityEngine;
 public class GameManager : MonoBehaviour {
     private static NetworkManager m_NetworkManager;
 
-    private List<ulong> Scoreboard = new List<ulong>();
-
     void Awake() {
         m_NetworkManager = GetComponent<NetworkManager>();
     }
 
     private void Update() {
         
-    }
-
-    [ServerRpc] public void ScorePointServerRpc(ulong id) {
-        if ((int)id >= Scoreboard.Count)
-            Scoreboard.Add(1);
-        else
-            Scoreboard[(int)id]++;
-
-        Debug.Log("Player " + id + " scored. They now have " + Scoreboard[(int)id] + " points.");
     }
 
     private void OnGUI() {

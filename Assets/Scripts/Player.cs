@@ -41,6 +41,9 @@ public class Player : NetworkBehaviour {
 
     private GameManager GameManager;
 
+
+    public ulong UniqueNetId { get; private set; }
+
     private void Awake() {
         InputActions = new PlayerInput();
         InputActions.Enable();
@@ -100,11 +103,14 @@ public class Player : NetworkBehaviour {
             Destroy(ChargeIndicator);
         }
         GameManager = NetworkManager.gameObject.GetComponent<GameManager>();
+        UniqueNetId = NetworkManager.LocalClientId;
+    }
+    private void OnGUI() {
+        GUILayout.BeginArea(new Rect(20, 450, 200, 200));
+        GUILayout.Label("Player ID: " + UniqueNetId);
+        GUILayout.EndArea();
     }
 
-    public void ScorePoint() {
-        GameManager.ScorePointServerRpc(NetworkManager.LocalClient.ClientId);
-    }
 
     private void Look(Vector3 LookVector) {
 
@@ -134,9 +140,6 @@ public class Player : NetworkBehaviour {
 
         if (mag > MaxSpeed)
             RigidBodyComponent.velocity = RigidBodyComponent.velocity / mag * MaxSpeed;
-
-
-        //transform.up = Vector3.RotateTowards(transform.up, targetDirection, TurnSpeed * Time.deltaTime * Mathf.Deg2Rad, 0.05f);
     }
     private void Fire(float ChargeLevel) {
         Transform spawnedBulledTransform = Instantiate(BulletPrefab);
