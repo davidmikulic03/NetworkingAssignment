@@ -43,7 +43,6 @@ public class Bullet : NetworkBehaviour {
     private void OnTriggerEnter2D(Collider2D collider) {
         if (Instigator && collider.gameObject == Instigator.gameObject)
             return;
-        Debug.Log("Hit!");
         var player = collider.gameObject.GetComponent<Player>();
         if (player) {
             player.Damage(transform.up.xy0(), Power);
@@ -53,8 +52,8 @@ public class Bullet : NetworkBehaviour {
 
     [ServerRpc(RequireOwnership = false)]
     private void DestroyServerRpc() {
-        Debug.Log("Destroyed Bullet");
-        var ps = GetComponent<ParticleSystem>();
+        //Debug.Log("Destroyed Bullet");
+        //var ps = GetComponent<ParticleSystem>();
         //if (ps) {
         //    ps.Stop();
         //    Collider.enabled = false;

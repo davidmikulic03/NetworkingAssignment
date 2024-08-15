@@ -58,21 +58,21 @@ public class Chat : NetworkBehaviour
         InputField.text.Remove(0);
         Scrollbar.value = 0f;
     }
-    [ClientRpc] private void ReceiveChatMessageClientRpc(FixedString512Bytes Message, ulong PlayerId) {
-        Debug.Log("Client received message from server.");
-        AddMessage(Message.ToString(), PlayerId);
-    }
 
     [ServerRpc(RequireOwnership = false)] private void SendChatMessageServerRpc(FixedString512Bytes Message, ulong PlayerId) {
         Debug.Log("Server received message from client.");
         ReceiveChatMessageClientRpc(Message, PlayerId);
     }
+    [ClientRpc] private void ReceiveChatMessageClientRpc(FixedString512Bytes Message, ulong PlayerId) {
+        Debug.Log("Client received message from server.");
+        AddMessage(Message.ToString(), PlayerId);
+    }
 
+    //Complete bruteforce but I didn't feel like dealing with it.
     public void Hide() {
         Rect.localPosition = new Vector3(1000000, 100000, 1000000);
     }
     public void Show() {
-        //Complete bruteforce but I didn't feel like dealing with it.
         Rect.localPosition = new Vector3(-352.935f + 960.1167f, 363.319f - 539.9343f, 0f);
     }
 }

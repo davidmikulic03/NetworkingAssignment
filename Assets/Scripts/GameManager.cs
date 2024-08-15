@@ -16,10 +16,6 @@ public class GameManager : MonoBehaviour {
         Chat.Hide();
     }
 
-    private void Update() {
-        
-    }
-
     private void OnGUI() {
         GUILayout.BeginArea(new Rect(20, 20, 900, 900));
         if(!m_NetworkManager.IsClient && !m_NetworkManager.IsServer) {
